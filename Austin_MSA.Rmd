@@ -1,0 +1,305 @@
+---
+title: "Austin_MSA"
+author: "huzh1108"
+date: "2023-03-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(sf)
+library(tigris)
+```
+
+```{r}
+# install.packages("devtools")
+# devtools::install_github("r-lib/conflicted")
+# library(conflicted)
+# conflicts_prefer(dplyr::filter())
+# conflicts_prefer(dplyr::lag())
+```
+
+```{r}
+library(usethis)
+edit_r_environ()
+```
+
+
+```{r}
+options(tigris_use_cache = TRUE)
+census_api_key(Sys.getenv("CENSUS_API_KEY"), install = TRUE, overwrite = TRUE)
+readRenviron("~/.Renviron")
+```
+###Austin MSA
+```{r}
+Austin_tracts <- map_dfr(c("TX"), ~{
+  tracts(.x, cb = TRUE, year = 2020)
+})
+
+Austin_metro <- core_based_statistical_areas(cb = TRUE, year = 2016) %>%
+  filter(str_detect(NAME, "Austin-Round"))
+
+
+au_tracts_within <- Austin_tracts %>%
+  st_filter(Austin_metro, .predicate = st_within)
+
+au_tracts <- c(au_tracts_within$GEOID)
+
+ggplot() + 
+  geom_sf(data = au_tracts_within, fill = "white", color = "grey") + 
+  geom_sf(data = Austin_metro, fill = NA, color = "red") + 
+  theme_void()
+```
+
+###Census Data
+```{r}
+Travis <- get_acs(geography = "tract", state = "TX", county = "Travis", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(pop = "B03002_001",
+                                   nw = "B03002_003",
+                                   over25 = "B15003_001",
+                                   BD = "B15003_022",
+                                   MD = "B15003_023",
+                                   Profession = "B15003_024",
+                                   PHD = "B15003_025",
+                                   own = "B25003_002",
+                                   rent = "B25003_003",
+                                   childP = "S1701_C03_002E",
+                                   Mhi = "B19013_001"))
+
+Williamson <- get_acs(geography = "tract", state = "TX", county = "Williamson", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(pop = "B03002_001",
+                                   nw = "B03002_003",
+                                   over25 = "B15003_001",
+                                   BD = "B15003_022",
+                                   MD = "B15003_023",
+                                   Profession = "B15003_024",
+                                   PHD = "B15003_025",
+                                   own = "B25003_002",
+                                   rent = "B25003_003",
+                                   childP = "S1701_C03_002E",
+                                   Mhi = "B19013_001"))
+
+Bastrop <- get_acs(geography = "tract", state = "TX", county = "Bastrop", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(pop = "B03002_001",
+                                   nw = "B03002_003",
+                                   over25 = "B15003_001",
+                                   BD = "B15003_022",
+                                   MD = "B15003_023",
+                                   Profession = "B15003_024",
+                                   PHD = "B15003_025",
+                                   own = "B25003_002",
+                                   rent = "B25003_003",
+                                   childP = "S1701_C03_002E",
+                                   Mhi = "B19013_001"))
+
+Caldwell <- get_acs(geography = "tract", state = "TX", county = "Caldwell", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(pop = "B03002_001",
+                                   nw = "B03002_003",
+                                   over25 = "B15003_001",
+                                   BD = "B15003_022",
+                                   MD = "B15003_023",
+                                   Profession = "B15003_024",
+                                   PHD = "B15003_025",
+                                   own = "B25003_002",
+                                   rent = "B25003_003",
+                                   childP = "S1701_C03_002E",
+                                   Mhi = "B19013_001"))
+
+Hays <- get_acs(geography = "tract", state = "TX", county = "Hays", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(pop = "B03002_001",
+                                   nw = "B03002_003",
+                                   over25 = "B15003_001",
+                                   BD = "B15003_022",
+                                   MD = "B15003_023",
+                                   Profession = "B15003_024",
+                                   PHD = "B15003_025",
+                                   own = "B25003_002",
+                                   rent = "B25003_003",
+                                   childP = "S1701_C03_002E",
+                                   Mhi = "B19013_001"))
+
+```
+```{r}
+Austin_tracts <- rbind(Travis, Williamson, Bastrop, Caldwell, Hays)
+Austin_tracts <- Austin_tracts[Austin_tracts$GEOID %in% au_tracts,]
+```
+
+```{r}
+Austin <- as.data.frame(Austin_tracts)[,c(1, 3:4)] %>% spread(variable, estimate)
+colnames(Austin)[12] <- "pct.child_p"
+
+#Austin <- Austin[Austin$pop != 0,]
+```
+###CHAS
+```{r}
+chas_1 <- read.csv('Housing Unit Problem.csv', header = TRUE)
+```
+
+```{r}
+chas_1$GEOID <- substring(chas_1$geoid, 8, 18)
+Austin_chas <- chas_1[chas_1$GEOID %in% au_tracts,]
+rownames(Austin_chas) <- 1:nrow(Austin_chas)
+#Austin_chas <- Austin_chas[Austin_chas$T1_est1 != 0,]
+```
+
+```{r}
+Austin_li <- Austin_chas %>%
+  select(c(GEOID, T1_est4,T1_est12, T1_est20, T1_est45, T1_est53, T1_est61, T1_est86, T1_est94, T1_est102, T1_est128, T1_est136, T1_est144, T1_est169, T1_est177, T1_est185, T1_est210, T1_est218, T1_est226))
+
+Austin_li$li <- rowSums(Austin_li[sapply(Austin_li, is.numeric)], na.rm = TRUE)
+Austin_li <- left_join(Austin_li, select(Austin_chas, c("T1_est1", "GEOID")), by = "GEOID")
+Austin_li <-  Austin_li %>% mutate(pct.li = li/T1_est1)
+
+```
+
+
+```{r}
+Austin_vul <- Austin %>%
+  mutate(pct.color = (pop-nw)/pop,
+         pct.lackHE = 1-((BD+MD+Profession+PHD)/over25),
+         pct.rent = rent/(rent+own)
+         )
+
+Austin_vul <- left_join(Austin_vul, select(Austin_li, c("GEOID","pct.li")), by = "GEOID")
+
+Austin_vul[is.na(Austin_vul)] <- 0
+```
+
+```{r}
+Austin_vul <- Austin_vul%>%
+  select(c('GEOID', 'pct.child_p', 'pct.color', 'pct.lackHE', 'pct.rent', 'pct.li')) %>%
+  mutate(across(where(is.numeric), 
+      ~(.- mean(., na.rm = TRUE))/sd(., na.rm = TRUE), .names = 'zscore.{col}'))
+```
+
+```{r}
+Austin_vul$ifVul <- rowSums(select(Austin_vul, starts_with('zscore')) > 0.5)
+```
+
+```{r}
+Austin_vul <- Austin_vul%>%
+  mutate(avg_z = if_else(ifVul >=3, rowMeans(select(Austin_vul, starts_with('zscore')), , na.rm = TRUE), 0))
+
+Austin_vul$vul <- cut(Austin_vul$avg_z, c(0.5,1,1.5,5))
+```
+
+```{r}
+au_tracts_within %>%
+  left_join(Austin_vul, by = "GEOID") %>%
+  ggplot()+
+  geom_sf(aes(fill = vul))
+```
+
+###Demographic Change Factors
+```{r}
+# Travis_2000 <- get_decennial(geography = "tract", state = "TX", county = "Travis", 
+#                      year = 2000, geometry = TRUE,
+#                      variables = c(pop = "B03002_001",
+#                                    nw = "B03002_003",
+#                                    over25 = "B15003_001",
+#                                    BD = "B15003_022",
+#                                    MD = "B15003_023",
+#                                    Profession = "B15003_024",
+#                                    PHD = "B15003_025",
+#                                    own = "B25003_002",
+#                                    rent = "B25003_003",
+#                                    childP = "S1701_C03_002E",
+#                                    Mhi = "B19013_001"))
+# 
+# Williamson_2000 <- get_acs(geography = "tract", state = "TX", county = "Williamson", 
+#                      year = 2016, survey = "acs5", geometry = TRUE,
+#                      variables = c(pop = "B03002_001",
+#                                    nw = "B03002_003",
+#                                    over25 = "B15003_001",
+#                                    BD = "B15003_022",
+#                                    MD = "B15003_023",
+#                                    Profession = "B15003_024",
+#                                    PHD = "B15003_025",
+#                                    own = "B25003_002",
+#                                    rent = "B25003_003",
+#                                    childP = "S1701_C03_002E",
+#                                    Mhi = "B19013_001"))
+# 
+# Bastrop <- get_acs(geography = "tract", state = "TX", county = "Bastrop", 
+#                      year = 2016, survey = "acs5", geometry = TRUE,
+#                      variables = c(pop = "B03002_001",
+#                                    nw = "B03002_003",
+#                                    over25 = "B15003_001",
+#                                    BD = "B15003_022",
+#                                    MD = "B15003_023",
+#                                    Profession = "B15003_024",
+#                                    PHD = "B15003_025",
+#                                    own = "B25003_002",
+#                                    rent = "B25003_003",
+#                                    childP = "S1701_C03_002E",
+#                                    Mhi = "B19013_001"))
+# 
+# Caldwell <- get_acs(geography = "tract", state = "TX", county = "Caldwell", 
+#                      year = 2016, survey = "acs5", geometry = TRUE,
+#                      variables = c(pop = "B03002_001",
+#                                    nw = "B03002_003",
+#                                    over25 = "B15003_001",
+#                                    BD = "B15003_022",
+#                                    MD = "B15003_023",
+#                                    Profession = "B15003_024",
+#                                    PHD = "B15003_025",
+#                                    own = "B25003_002",
+#                                    rent = "B25003_003",
+#                                    childP = "S1701_C03_002E",
+#                                    Mhi = "B19013_001"))
+# 
+# Hays <- get_acs(geography = "tract", state = "TX", county = "Hays", 
+#                      year = 2016, survey = "acs5", geometry = TRUE,
+#                      variables = c(pop = "B03002_001",
+#                                    nw = "B03002_003",
+#                                    over25 = "B15003_001",
+#                                    BD = "B15003_022",
+#                                    MD = "B15003_023",
+#                                    Profession = "B15003_024",
+#                                    PHD = "B15003_025",
+#                                    own = "B25003_002",
+#                                    rent = "B25003_003",
+#                                    childP = "S1701_C03_002E",
+#                                    Mhi = "B19013_001"))
+```
+
+
+```{r}
+Austin_Demo <- Austin %>%
+  mutate(pct.color = nw/pop,
+         HE = (BD+MD+Profession+PHD)/over25,
+         pct.rent = own/(rent+own)) %>%
+  select(., c('GEOID', 'pct.color', 'HE', 'pct.rent', 'Mhi')) %>%
+  mutate(across(where(is.numeric), 
+                ~(.- mean(., na.rm = TRUE))/sd(., na.rm = TRUE), .names = 'zscore.{col}'))
+
+#Austin_vul[is.na(Austin_vul)] <- 0
+```
+
+```{r}
+Austin_Demo$ifChange <- rowSums(select(Austin_Demo, starts_with('zscore')) > 0.5)
+
+Austin_Demo <- Austin_Demo%>%
+  mutate(avg_z = if_else(ifChange >=2, rowMeans(select(Austin_Demo, starts_with('zscore')), , na.rm = TRUE), 0))
+
+Austin_Demo <- Austin_Demo %>% mutate(demo_change = if_else(avg_z>0.5, 1, NA_real_))
+```
+
+```{r}
+au_tracts_within %>%
+  left_join(Austin_Demo, by = "GEOID") %>%
+  ggplot()+
+  geom_sf(aes(fill = demo_change))
+```
+
