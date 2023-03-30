@@ -130,6 +130,7 @@ Hays <- get_acs(geography = "tract", state = "TX", county = "Hays",
                                    Mhi = "B19013_001"))
 
 ```
+
 ```{r}
 Austin_tracts <- rbind(Travis, Williamson, Bastrop, Caldwell, Hays)
 Austin_tracts <- Austin_tracts[Austin_tracts$GEOID %in% au_tracts,]
@@ -203,78 +204,157 @@ au_tracts_within %>%
 
 ###Demographic Change Factors
 ```{r}
-Travis_2000 <- get_decennial(geography = "tract", state = "TX", county = "Travis",
-                     year = 2000, geometry = TRUE,
-                     variables = c(pop = "B03002_001",
-                                   nw = "B03002_003",
-                                   over25 = "B15003_001",
-                                   BD = "B15003_022",
-                                   MD = "B15003_023",
-                                   Profession = "B15003_024",
-                                   PHD = "B15003_025",
-                                   own = "B25003_002",
-                                   rent = "B25003_003",
-                                   childP = "S1701_C03_002E",
-                                   Mhi = "B19013_001"))
-# 
-# Williamson_2000 <- get_acs(geography = "tract", state = "TX", county = "Williamson", 
-#                      year = 2016, survey = "acs5", geometry = TRUE,
-#                      variables = c(pop = "B03002_001",
-#                                    nw = "B03002_003",
-#                                    over25 = "B15003_001",
-#                                    BD = "B15003_022",
-#                                    MD = "B15003_023",
-#                                    Profession = "B15003_024",
-#                                    PHD = "B15003_025",
-#                                    own = "B25003_002",
-#                                    rent = "B25003_003",
-#                                    childP = "S1701_C03_002E",
-#                                    Mhi = "B19013_001"))
-# 
-# Bastrop <- get_acs(geography = "tract", state = "TX", county = "Bastrop", 
-#                      year = 2016, survey = "acs5", geometry = TRUE,
-#                      variables = c(pop = "B03002_001",
-#                                    nw = "B03002_003",
-#                                    over25 = "B15003_001",
-#                                    BD = "B15003_022",
-#                                    MD = "B15003_023",
-#                                    Profession = "B15003_024",
-#                                    PHD = "B15003_025",
-#                                    own = "B25003_002",
-#                                    rent = "B25003_003",
-#                                    childP = "S1701_C03_002E",
-#                                    Mhi = "B19013_001"))
-# 
-# Caldwell <- get_acs(geography = "tract", state = "TX", county = "Caldwell", 
-#                      year = 2016, survey = "acs5", geometry = TRUE,
-#                      variables = c(pop = "B03002_001",
-#                                    nw = "B03002_003",
-#                                    over25 = "B15003_001",
-#                                    BD = "B15003_022",
-#                                    MD = "B15003_023",
-#                                    Profession = "B15003_024",
-#                                    PHD = "B15003_025",
-#                                    own = "B25003_002",
-#                                    rent = "B25003_003",
-#                                    childP = "S1701_C03_002E",
-#                                    Mhi = "B19013_001"))
-# 
-# Hays <- get_acs(geography = "tract", state = "TX", county = "Hays", 
-#                      year = 2016, survey = "acs5", geometry = TRUE,
-#                      variables = c(pop = "B03002_001",
-#                                    nw = "B03002_003",
-#                                    over25 = "B15003_001",
-#                                    BD = "B15003_022",
-#                                    MD = "B15003_023",
-#                                    Profession = "B15003_024",
-#                                    PHD = "B15003_025",
-#                                    own = "B25003_002",
-#                                    rent = "B25003_003",
-#                                    childP = "S1701_C03_002E",
-#                                    Mhi = "B19013_001"))
+Hays_2000_1 <- get_decennial(geography = "tract", state = "TX", county = "Hays",
+                     year = 2000, geometry = TRUE, sumfile = "sf1",
+                     # show_call = TRUE,
+                     variables = c(pop = "P004001",
+                                   nw = "P004005"))
+
+Hays_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Hays",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(over25 = "P037001",
+                                   BDM = "P037015",
+                                   MDM = "P037016",
+                                   ProfessionM = "P037017",
+                                   PHDM = "P037018",
+                                   BDF = "P037032",
+                                   MDF = "P037033",
+                                   ProfessionF = "P037034",
+                                   PHDF = "P037035",
+
+                                   tot_tenure = "HCT002001",
+                                   own = "HCT002002",
+
+                                   Mhi = "HCT012001"))
+Hays_2000_1b <- as.data.frame(Hays_2000_1)[,c(1, 4:5)] %>% spread(variable, value)
+Hays_2000_3b <- as.data.frame(Hays_2000_3)[,c(1, 4:5)] %>% spread(variable, value)
+
+Hays_2000 <- left_join(Hays_2000_3b, select(Hays_2000_1b, c("pop", "nw", "GEOID")), by = "GEOID")
+```
+```{r}
+Travis_2000_1 <- get_decennial(geography = "tract", state = "TX", county = "Travis",
+                     year = 2000, geometry = TRUE, sumfile = "sf1",
+                     # show_call = TRUE,
+                     variables = c(pop = "P004001",
+                                   nw = "P004005"))
+
+Travis_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Travis",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(over25 = "P037001",
+                                   BDM = "P037015",
+                                   MDM = "P037016",
+                                   ProfessionM = "P037017",
+                                   PHDM = "P037018",
+                                   BDF = "P037032",
+                                   MDF = "P037033",
+                                   ProfessionF = "P037034",
+                                   PHDF = "P037035",
+
+                                   tot_tenure = "HCT002001",
+                                   own = "HCT002002",
+
+                                   Mhi = "HCT012001"))
+Travis_2000_1b <- as.data.frame(Travis_2000_1)[,c(1, 4:5)] %>% spread(variable, value)
+Travis_2000_3b <- as.data.frame(Travis_2000_3)[,c(1, 4:5)] %>% spread(variable, value)
+
+Travis_2000 <- left_join(Travis_2000_3b, select(Travis_2000_1b, c("pop", "nw", "GEOID")), by = "GEOID")
+```
+```{r}
+Williamson_2000_1 <- get_decennial(geography = "tract", state = "TX", county = "Williamson",
+                     year = 2000, geometry = TRUE, sumfile = "sf1",
+                     # show_call = TRUE,
+                     variables = c(pop = "P004001",
+                                   nw = "P004005"))
+
+Williamson_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Williamson",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(over25 = "P037001",
+                                   BDM = "P037015",
+                                   MDM = "P037016",
+                                   ProfessionM = "P037017",
+                                   PHDM = "P037018",
+                                   BDF = "P037032",
+                                   MDF = "P037033",
+                                   ProfessionF = "P037034",
+                                   PHDF = "P037035",
+
+                                   tot_tenure = "HCT002001",
+                                   own = "HCT002002",
+
+                                   Mhi = "HCT012001"))
+Williamson_2000_1b <- as.data.frame(Williamson_2000_1)[,c(1, 4:5)] %>% spread(variable, value)
+Williamson_2000_3b <- as.data.frame(Williamson_2000_3)[,c(1, 4:5)] %>% spread(variable, value)
+
+Williamson_2000 <- left_join(Williamson_2000_3b, select(Williamson_2000_1b, c("pop", "nw", "GEOID")), by = "GEOID")
+```
+```{r}
+Caldwell_2000_1 <- get_decennial(geography = "tract", state = "TX", county = "Caldwell",
+                     year = 2000, geometry = TRUE, sumfile = "sf1",
+                     # show_call = TRUE,
+                     variables = c(pop = "P004001",
+                                   nw = "P004005"))
+
+Caldwell_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Caldwell",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(over25 = "P037001",
+                                   BDM = "P037015",
+                                   MDM = "P037016",
+                                   ProfessionM = "P037017",
+                                   PHDM = "P037018",
+                                   BDF = "P037032",
+                                   MDF = "P037033",
+                                   ProfessionF = "P037034",
+                                   PHDF = "P037035",
+
+                                   tot_tenure = "HCT002001",
+                                   own = "HCT002002",
+
+                                   Mhi = "HCT012001"))
+Caldwell_2000_1b <- as.data.frame(Caldwell_2000_1)[,c(1, 4:5)] %>% spread(variable, value)
+Caldwell_2000_3b <- as.data.frame(Caldwell_2000_3)[,c(1, 4:5)] %>% spread(variable, value)
+
+Caldwell_2000 <- left_join(Caldwell_2000_3b, select(Caldwell_2000_1b, c("pop", "nw", "GEOID")), by = "GEOID")
+```
+```{r}
+Bastrop_2000_1 <- get_decennial(geography = "tract", state = "TX", county = "Bastrop",
+                     year = 2000, geometry = TRUE, sumfile = "sf1",
+                     # show_call = TRUE,
+                     variables = c(pop = "P004001",
+                                   nw = "P004005"))
+
+Bastrop_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Bastrop",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(over25 = "P037001",
+                                   BDM = "P037015",
+                                   MDM = "P037016",
+                                   ProfessionM = "P037017",
+                                   PHDM = "P037018",
+                                   BDF = "P037032",
+                                   MDF = "P037033",
+                                   ProfessionF = "P037034",
+                                   PHDF = "P037035",
+
+                                   tot_tenure = "HCT002001",
+                                   own = "HCT002002",
+
+                                   Mhi = "HCT012001"))
+Bastrop_2000_1b <- as.data.frame(Bastrop_2000_1)[,c(1, 4:5)] %>% spread(variable, value)
+Bastrop_2000_3b <- as.data.frame(Bastrop_2000_3)[,c(1, 4:5)] %>% spread(variable, value)
+
+Bastrop_2000 <- left_join(Bastrop_2000_3b, select(Bastrop_2000_1b, c("pop", "nw", "GEOID")), by = "GEOID")
+```
+```{r}
+Austin_2000 <- rbind(Travis_2000, Williamson_2000, Bastrop_2000, Caldwell_2000, Hays_2000)
+Austin_tracts_2000 <- Austin_2000[Austin_2000$GEOID %in% au_tracts,]
 ```
 
 
+###Step 1
 ```{r}
 Austin_Demo <- Austin %>%
   mutate(pct.color = nw/pop,
