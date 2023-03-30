@@ -203,19 +203,19 @@ au_tracts_within %>%
 
 ###Demographic Change Factors
 ```{r}
-# Travis_2000 <- get_decennial(geography = "tract", state = "TX", county = "Travis", 
-#                      year = 2000, geometry = TRUE,
-#                      variables = c(pop = "B03002_001",
-#                                    nw = "B03002_003",
-#                                    over25 = "B15003_001",
-#                                    BD = "B15003_022",
-#                                    MD = "B15003_023",
-#                                    Profession = "B15003_024",
-#                                    PHD = "B15003_025",
-#                                    own = "B25003_002",
-#                                    rent = "B25003_003",
-#                                    childP = "S1701_C03_002E",
-#                                    Mhi = "B19013_001"))
+Travis_2000 <- get_decennial(geography = "tract", state = "TX", county = "Travis",
+                     year = 2000, geometry = TRUE,
+                     variables = c(pop = "B03002_001",
+                                   nw = "B03002_003",
+                                   over25 = "B15003_001",
+                                   BD = "B15003_022",
+                                   MD = "B15003_023",
+                                   Profession = "B15003_024",
+                                   PHD = "B15003_025",
+                                   own = "B25003_002",
+                                   rent = "B25003_003",
+                                   childP = "S1701_C03_002E",
+                                   Mhi = "B19013_001"))
 # 
 # Williamson_2000 <- get_acs(geography = "tract", state = "TX", county = "Williamson", 
 #                      year = 2016, survey = "acs5", geometry = TRUE,
