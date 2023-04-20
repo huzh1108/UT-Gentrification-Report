@@ -39,7 +39,7 @@ readRenviron("~/.Renviron")
 ###Austin MSA
 ```{r}
 Austin_tracts <- map_dfr(c("TX"), ~{
-  tracts(.x, cb = TRUE, year = 2020)
+  tracts(.x, cb = TRUE, year = 2016)
 })
 
 Austin_metro <- core_based_statistical_areas(cb = TRUE, year = 2016) %>%
@@ -132,8 +132,8 @@ Hays <- get_acs(geography = "tract", state = "TX", county = "Hays",
 ```
 
 ```{r}
-Austin_tracts <- rbind(Travis, Williamson, Bastrop, Caldwell, Hays)
-Austin_tracts <- Austin_tracts[Austin_tracts$GEOID %in% au_tracts,]
+Austin_tracts_all <- rbind(Travis, Williamson, Bastrop, Caldwell, Hays)
+Austin_tracts <- Austin_tracts_all[Austin_tracts_all$GEOID %in% au_tracts,]
 ```
 
 ```{r}
@@ -203,6 +203,9 @@ au_tracts_within %>%
 ```
 
 ###Demographic Change Factors
+
+###Step 1 ~ 3 (2012 - 2016 data have been downloaded in the previous section)
+
 ```{r}
 Hays_2000_1 <- get_decennial(geography = "tract", state = "TX", county = "Hays",
                      year = 2000, geometry = TRUE, sumfile = "sf1",
@@ -348,13 +351,43 @@ Bastrop_2000_3b <- as.data.frame(Bastrop_2000_3)[,c(1, 4:5)] %>% spread(variable
 
 Bastrop_2000 <- left_join(Bastrop_2000_3b, select(Bastrop_2000_1b, c("pop", "nw", "GEOID")), by = "GEOID")
 ```
+
+
 ```{r}
 Austin_2000 <- rbind(Travis_2000, Williamson_2000, Bastrop_2000, Caldwell_2000, Hays_2000)
-Austin_tracts_2000 <- Austin_2000[Austin_2000$GEOID %in% au_tracts,]
 ```
 
 
-###Step 1
+```{r}
+Austin_tracts_2000 <- map_dfr(c("TX"), ~{
+  tracts(.x, cb = TRUE, year = 2000)
+})
+
+Austin_metro_2000 <- core_based_statistical_areas(cb = TRUE, year = 2010) %>%
+  filter(str_detect(NAME, "Austin-Round"))
+
+
+au_tracts_within_2000 <- Austin_tracts_2000 %>%
+  st_filter(Austin_metro_2000, .predicate = st_within)
+
+#au_tracts_2000 <- c(au_tracts_within_2000$GEOID)
+```
+
+###Step 4 Crosswalk Table
+```{r}
+crosswalks_total <- read.csv('crosswalk_2000_2010.csv', header = TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
 ```{r}
 Austin_Demo <- Austin %>%
   mutate(pct.color = nw/pop,
