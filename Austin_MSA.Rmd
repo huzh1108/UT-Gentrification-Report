@@ -133,13 +133,11 @@ Hays <- get_acs(geography = "tract", state = "TX", county = "Hays",
 ```
 
 ```{r}
-<<<<<<< HEAD
+
 Austin_tracts <- rbind(Travis, Williamson, Bastrop, Caldwell, Hays)
 #Austin_tracts <- Austin_tracts_all[Austin_tracts_all$GEOID %in% au_tracts,]
-=======
 Austin_tracts_all <- rbind(Travis, Williamson, Bastrop, Caldwell, Hays)
 Austin_tracts <- Austin_tracts_all[Austin_tracts_all$GEOID %in% au_tracts,]
->>>>>>> 15fbfd55a73fa7f909ddcd958e9db676dfa35670
 ```
 
 ```{r}
