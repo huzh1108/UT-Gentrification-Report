@@ -386,18 +386,80 @@ weighted_2010 <- crosstable_2000 %>%
     weighted_Mhi_adjusted = ifelse(n() > 1, sum(Mhi_adjusted * weight) / sum(weight), sum(Mhi_adjusted * weight))
   )
 
-
+colnames(weighted_2010)[colnames(weighted_2010) == 'trtid10'] <- 'GEOID'
 ```
 
 
 ###Step 6
 ```{r}
+merged_df <- inner_join(weighted_2010, Austin, by = "GEOID")
+merged_df <- merged_df %>%
+  mutate(pct.nw = (nw - weighted_nw)/weighted_pop,
+         pct.college = ((BD+MD+Profession+PHD) - weighted_BDover25)/weighted_over25,
+         pct.homeowner = (own - weighted_owner_occupied)/ weighted_hu,
+         pct.Mhi = Mhi - weighted_Mhi_adjusted
+  )
+```
+
+###Step 7
+```{r}
+Austin_demochange <- merged_df%>%
+  select(c('GEOID', 'pct.nw', 'pct.college', 'pct.homeowner', 'pct.Mhi')) %>%
+  mutate(across(where(is.numeric), 
+      ~(.- mean(., na.rm = TRUE))/sd(., na.rm = TRUE), .names = 'zscore.{col}'))
+```
+
+###Step 8
+```{r}
+Austin_demochange$ifdc <- rowSums(select(Austin_demochange, starts_with('zscore')) > 0.5)
+Austin_demochange <- Austin_demochange%>%
+  mutate(dcf = if_else(ifdc >=2, 1, 0))
 
 ```
 
+```{r}
+au_tracts_within %>%
+  left_join(Austin_demochange, by = "GEOID") %>%
+  ggplot()+
+  geom_sf(aes(fill = dcf))
+```
 
 
+```{r}
+Travis <- get_acs(geography = "tract", state = "TX", county = "Travis", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(Mhv = "B25007_001", #Median housing value
+                                   Mgr = "B25064_001")) #Median gross rent (B25058 for contract rent)
 
+Williamson <- get_acs(geography = "tract", state = "TX", county = "Williamson", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(Mhv = "B25007_001",
+                                   Mgr = "B25064_001"))
+
+Bastrop <- get_acs(geography = "tract", state = "TX", county = "Bastrop", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(Mhv = "B25007_001",
+                                   Mgr = "B25064_001"))
+
+Caldwell <- get_acs(geography = "tract", state = "TX", county = "Caldwell", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(Mhv = "B25007_001",
+                                   Mgr = "B25064_001"))
+
+Hays <- get_acs(geography = "tract", state = "TX", county = "Hays", 
+                     year = 2016, survey = "acs5", geometry = TRUE,
+                     variables = c(Mhv = "B25007_001",
+                                   Mgr = "B25064_001"))
+
+```
+
+```{r}
+Hays_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Hays",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(mhv = "H076001", #Median Value for owner-occupied
+                                   Mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
+```
 
 
 
