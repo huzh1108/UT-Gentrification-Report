@@ -460,6 +460,30 @@ Hays <- get_acs(geography = "tract", state = "TX", county = "Hays",
 ```
 
 ```{r}
+Travis_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Travis",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(mhv = "H076001", #Median Value for owner-occupied
+                                   Mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
+
+Williamson_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Williamson",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(mhv = "H076001", #Median Value for owner-occupied
+                                   Mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
+
+Bastrop_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Bastrop",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(mhv = "H076001", #Median Value for owner-occupied
+                                   Mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
+
+Caldwell_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Caldwell",
+                     year = 2000, geometry = TRUE, sumfile = "sf3",
+                     # show_call = TRUE,
+                     variables = c(mhv = "H076001", #Median Value for owner-occupied
+                                   Mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
+
 Hays_2000_3 <- get_decennial(geography = "tract", state = "TX", county = "Hays",
                      year = 2000, geometry = TRUE, sumfile = "sf3",
                      # show_call = TRUE,
