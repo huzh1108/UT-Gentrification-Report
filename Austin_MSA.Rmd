@@ -374,6 +374,7 @@ crosswalks_total <- read.csv('crosswalk_2000_2010.csv', header = TRUE)
 crosswalks_total <- select(crosswalks_total, trtid00, trtid10, weight)
 crosswalks_total[, c(1,2)] <- sapply(crosswalks_total[, c(1,2)], as.character)
 crosstable_2000 <- crosswalks_total %>% inner_join(Austin_2000, by = "trtid00")
+crosstable_2000 <- crosstable_2000[crosstable_2000$tot_tenure != 0,]
 ```
 
 ###Step 5
@@ -425,7 +426,8 @@ Austin_demochange <- Austin_demochange%>%
 au_tracts_within %>%
   left_join(Austin_demochange, by = "GEOID") %>%
   ggplot()+
-  geom_sf(aes(fill = dcf))
+  geom_sf(aes(fill = dcf)) +
+  scale_fill_gradient(low = "white", high = "blue", na.value = "transparent")
 ```
 
 
