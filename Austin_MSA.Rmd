@@ -18,16 +18,8 @@ library(tigris)
 ```
 
 ```{r}
-# install.packages("devtools")
-# devtools::install_github("r-lib/conflicted")
-# library(conflicted)
-# conflicts_prefer(dplyr::filter())
-# conflicts_prefer(dplyr::lag())
-```
-
-```{r}
 library(usethis)
-#sys.setenv(CENSUS_API_KEY = "Your-token")
+sys.setenv(CENSUS_API_KEY = "Your-token")
 ```
 
 ```{r}
@@ -89,85 +81,6 @@ for (x in large_austin_area) {
 ###Census Data
 
 ```{r}
-# Travis <- get_acs(geography = "tract", state = "TX", county = "Travis",
-#                       year = 2016, survey = "acs5", geometry = TRUE,
-#                       variables = c(pop = "B03002_001",
-#                                     nw = "B03002_003",
-#                                     over25 = "B15003_001",
-#                                     BD = "B15003_022",
-#                                     MD = "B15003_023",
-#                                     Profession = "B15003_024",
-#                                     PHD = "B15003_025",
-#                                     own = "B25003_002",
-#                                     rent = "B25003_003",
-#                                     childP = "S1701_C03_002E",
-#                                     Mhi = "B19013_001"))
-# 
-# Williamson <- get_acs(geography = "tract", state = "TX", county = "Williamson",
-#                       year = 2016, survey = "acs5", geometry = TRUE,
-#                       variables = c(pop = "B03002_001",
-#                                     nw = "B03002_003",
-#                                     over25 = "B15003_001",
-#                                     BD = "B15003_022",
-#                                     MD = "B15003_023",
-#                                     Profession = "B15003_024",
-#                                     PHD = "B15003_025",
-#                                     own = "B25003_002",
-#                                     rent = "B25003_003",
-#                                     childP = "S1701_C03_002E",
-#                                     Mhi = "B19013_001"))
-# 
-# Bastrop <- get_acs(geography = "tract", state = "TX", county = "Bastrop",
-#                       year = 2016, survey = "acs5", geometry = TRUE,
-#                       variables = c(pop = "B03002_001",
-#                                     nw = "B03002_003",
-#                                     over25 = "B15003_001",
-#                                     BD = "B15003_022",
-#                                     MD = "B15003_023",
-#                                     Profession = "B15003_024",
-#                                     PHD = "B15003_025",
-#                                     own = "B25003_002",
-#                                     rent = "B25003_003",
-#                                     childP = "S1701_C03_002E",
-#                                     Mhi = "B19013_001"))
-# 
-# Caldwell <- get_acs(geography = "tract", state = "TX", county = "Caldwell",
-#                       year = 2016, survey = "acs5", geometry = TRUE,
-#                       variables = c(pop = "B03002_001",
-#                                     nw = "B03002_003",
-#                                     over25 = "B15003_001",
-#                                     BD = "B15003_022",
-#                                     MD = "B15003_023",
-#                                     Profession = "B15003_024",
-#                                     PHD = "B15003_025",
-#                                     own = "B25003_002",
-#                                     rent = "B25003_003",
-#                                     childP = "S1701_C03_002E",
-#                                     Mhi = "B19013_001"))
-# 
-# Hays <- get_acs(geography = "tract", state = "TX", county = "Hays",
-#                       year = 2016, survey = "acs5", geometry = TRUE,
-#                       variables = c(pop = "B03002_001",
-#                                     nw = "B03002_003",
-#                                     over25 = "B15003_001",
-#                                     BD = "B15003_022",
-#                                     MD = "B15003_023",
-#                                     Profession = "B15003_024",
-#                                     PHD = "B15003_025",
-#                                     own = "B25003_002",
-#                                     rent = "B25003_003",
-#                                     childP = "S1701_C03_002E",
-#                                     Mhi = "B19013_001"))
-
-```
-
-```{r}
-# Austin_tracts_all <- rbind(Travis, Williamson, Bastrop, Caldwell, Hays)
-# test <- as.data.frame(Austin_tracts_all)[,c(1, 3:4)] %>% spread(variable, estimate)
-# #Austin_tracts <- Austin_tracts_all[Austin_tracts_all$GEOID %in% au_tracts,]
-```
-
-```{r}
 Austin_large_df <- as.data.frame(county_tot)[,c(1, 3:4)] %>% spread(variable, estimate)
 colnames(Austin_large_df)[12] <- "pct.child_p"
 
@@ -183,7 +96,7 @@ chas_1 <- read.csv('Housing Unit Problem.csv', header = TRUE)
 chas_1$GEOID <- substring(chas_1$geoid, 8, 18)
 Austin_chas <- chas_1[chas_1$GEOID %in% au_tracts,]
 rownames(Austin_chas) <- 1:nrow(Austin_chas)
-#Austin_chas <- Austin_chas[Austin_chas$T1_est1 != 0,]
+
 ```
 
 ```{r}
@@ -211,16 +124,12 @@ Austin_vul[is.na(Austin_vul)] <- 0
 ```{r}
 Austin_vul <- Austin_vul%>%
   select(c('GEOID', 'pct.child_p', 'pct.color', 'pct.nonba', 'pct.rent', 'pct.li')) %>%
-  mutate(zscore.child_p <- (pct.child_p - mean(pct.child_p))/sd(pct.child_p),
-         zscore.color <- (pct.color - mean(pct.color))/sd(pct.color),
-         zscore.nonba <- (pct.nonba - mean(pct.nonba))/sd(pct.nonba),
-         zscore.rent <- (pct.rent - mean(pct.rent))/sd(pct.rent),
-         zscore.li <- (pct.li - mean(pct.li))/sd(pct.li))
+  mutate(zscore.child_p = scale(pct.child_p, center = median(pct.child_p), scale = mad(pct.child_p)),
+         zscore.color = scale(pct.color, center = median(pct.color), scale = mad(pct.color)),
+         zscore.nonba = scale(pct.nonba, center = median(pct.nonba), scale = mad(pct.nonba)),
+         zscore.rent = scale(pct.rent, center = median(pct.rent), scale = mad(pct.rent)),
+         zscore.li = scale(pct.li, center = median(pct.li), scale = mad(pct.li)))
   
-  
-  
-  # mutate(across(where(is.numeric), 
-  #     ~(.- mean(., na.rm = TRUE))/sd(., na.rm = TRUE), .names = 'zscore.{col}'))
 ```
 
 ```{r}
@@ -280,13 +189,12 @@ for (x in large_austin_area) {
 ```
 
 ```{r}
-#Austin_2000 <- rbind(Travis_2000, Williamson_2000, Bastrop_2000, Caldwell_2000, Hays_2000)
 
 Austin_2000 <- county_tot_2000 %>%
-  mutate(BDover25 = BDM + MDM + ProfessionM + PHDM + BDF + MDF + ProfessionF + PHDF)
+  mutate(ba = BDM + MDM + ProfessionM + PHDM + BDF + MDF + ProfessionF + PHDF)
 Austin_2000 <- Austin_2000 %>%
-  mutate(Mhi_adjusted = Mhi * (241.428/172.2))
-Austin_2000 <- select(Austin_2000, GEOID, pop, tot_tenure, own, over25, nw, BDover25, Mhi_adjusted)
+  mutate(Mhi_adjusted = Mhi * (241.428/172.2)) #2016 inflation
+Austin_2000 <- select(Austin_2000, GEOID, pop, tot_tenure, own, over25, nw, ba, Mhi_adjusted)
 colnames(Austin_2000)[colnames(Austin_2000) == 'GEOID'] <- 'trtid00'
 ```
 
@@ -310,12 +218,15 @@ weighted_2010 <- crosstable_2000 %>%
     weighted_hu = sum(tot_tenure * weight),
     weighted_owner_occupied = sum(own * weight),
     weighted_over25 = ifelse(n() > 1, sum(over25 * weight) / sum(weight), sum(over25 * weight)),
-    weighted_BDover25 = ifelse(n() > 1, sum(BDover25 * weight) / sum(weight), sum(BDover25*weight)),
+    weighted_ba = ifelse(n() > 1, sum(ba * weight) / sum(weight), sum(ba*weight)),
     weighted_nw = ifelse(n() > 1, sum(nw * weight) / sum(weight), sum(nw * weight)),
     weighted_Mhi_adjusted = ifelse(n() > 1, sum(Mhi_adjusted * weight) / sum(weight), sum(Mhi_adjusted * weight))
-  )
+  ) %>%
+  mutate(across(where(is.numeric), round, digits = 0))
 
 colnames(weighted_2010)[colnames(weighted_2010) == 'trtid10'] <- 'GEOID'
+
+
 ```
 
 ###Step 6
@@ -324,55 +235,26 @@ colnames(weighted_2010)[colnames(weighted_2010) == 'trtid10'] <- 'GEOID'
 merged_df <- weighted_2010 %>% left_join(Austin_large_df, by = "GEOID")
 merged_df <- merged_df[merged_df$GEOID %in% au_tracts,] %>%
   mutate(pct.nw = (nw - weighted_nw)/weighted_pop,
-         pct.ba = ((BD+MD+Profession+PHD) - weighted_BDover25)/weighted_over25,
-         pct.homeowner = (own - weighted_owner_occupied)/ weighted_hu,
+         pct.ba = ((BD+MD+Profession+PHD) - weighted_ba)/weighted_over25,
+         pct.own = (own - weighted_owner_occupied)/ weighted_hu,
          pct.Mhi = Mhi - weighted_Mhi_adjusted
   )
+
+merged_df <- na.omit(merged_df)
 ```
-
-<!-- ############################################ -->
-
-<!-- ```{r} -->
-<!-- test_travis <- merged_df %>% -->
-<!--   filter(GEOID %in% Travis$GEOID) %>% -->
-<!--   select(c('GEOID', 'pct.nw', 'pct.college', 'pct.homeowner', 'pct.Mhi')) %>% -->
-<!--   mutate(across(where(is.numeric), -->
-<!--       ~(.- mean(., na.rm = TRUE))/sd(., na.rm = TRUE), .names = 'zscore.{col}')) -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- test_travis$ifdc <- rowSums(select(test_travis, starts_with('zscore')) > 0.5) -->
-<!-- test_travis <- test_travis %>% -->
-<!--   mutate(dcf = if_else(ifdc >= 2, 1, 0)) -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- travis_within <- au_tracts_within%>% -->
-<!--   filter(GEOID %in% Travis$GEOID) -->
-
-
-<!-- travis_within %>% -->
-<!--   left_join(test_travis, by = "GEOID") %>% -->
-<!--   ggplot()+ -->
-<!--   geom_sf(aes(fill = dcf)) + -->
-<!--   scale_fill_gradient(low = "white", high = "blue", na.value = "transparent") -->
-<!-- ``` -->
-<!-- ############################################ -->
-
-
 
 ###Step 7
 
-```{r}
-Austin_demochange <- merged_df $>$
-  mutate(zscore.nw <- (pct.nw - mean(pct.nw))/sd(pct.nw),
-         zscore.ba
-```
 
 
 ```{r}
 Austin_demochange <- merged_df %>%
-  select(c('GEOID', 'pct.nw', 'pct.college', 'pct.homeowner', 'pct.Mhi')) %>%
-  mutate(across(where(is.numeric), 
-      ~(.- mean(., na.rm = TRUE))/sd(., na.rm = TRUE), .names = 'zscore.{col}'))
+  select(c('GEOID', 'pct.nw', 'pct.ba', 'pct.own', 'pct.Mhi')) %>%
+  mutate(zscore.nw = scale(pct.nw, center = median(pct.nw), scale = mad(pct.nw)),
+         zscore.ba = scale(pct.ba, center = median(pct.ba), scale = mad(pct.ba)),
+         zscore.own = scale(pct.own, center = median(pct.own), scale = mad(pct.own)),
+         zscore.Mhi = scale(pct.Mhi, center = median(pct.Mhi), scale = mad(pct.Mhi)))
+  
 ```
 
 ###Step 8
@@ -380,90 +262,52 @@ Austin_demochange <- merged_df %>%
 ```{r}
 Austin_demochange$ifdc <- rowSums(select(Austin_demochange, starts_with('zscore')) > 0.5)
 Austin_demochange <- Austin_demochange%>%
-  mutate(dcf = if_else(ifdc >=2, 1, 0))
+  mutate(dcf = if_else(ifdc >=2, TRUE, FALSE))
 
-Austin_demochange$nw_ba_increasing <- Austin_demochange$pct.nw > 0 && Austin_demochange$pct.college > 0
+Austin_demochange$nw_ba <- Austin_demochange$pct.nw > 0 && Austin_demochange$pct.ba > 0
 ```
 
 ```{r}
 au_tracts_within %>%
   left_join(Austin_demochange, by = "GEOID") %>%
   ggplot()+
-  geom_sf(aes(fill = dcf)) +
-  scale_fill_gradient(low = "white", high = "blue", na.value = "transparent")
+  geom_sf(aes(fill = dcf))
 ```
 
 ###Housing Market Change
 
 ```{r}
-Travis_housing_2016 <- get_acs(geography = "tract", state = "TX", county = "Travis", 
-                     year = 2016, survey = "acs5", geometry = TRUE,
-                     variables = c(mhv = "B25077_001", #Median housing value
-                                   mgr = "B25064_001")) #Median gross rent (B25058 for contract rent)
-
-Williamson_housing_2016 <- get_acs(geography = "tract", state = "TX", county = "Williamson", 
-                     year = 2016, survey = "acs5", geometry = TRUE,
-                     variables = c(mhv = "B25077_001",
-                                   mgr = "B25064_001"))
-
-Bastrop_housing_2016 <- get_acs(geography = "tract", state = "TX", county = "Bastrop", 
-                     year = 2016, survey = "acs5", geometry = TRUE,
-                     variables = c(mhv = "B25077_001",
-                                   mgr = "B25064_001"))
-
-Caldwell_housing_2016 <- get_acs(geography = "tract", state = "TX", county = "Caldwell", 
-                     year = 2016, survey = "acs5", geometry = TRUE,
-                     variables = c(mhv = "B25077_001",
-                                   mgr = "B25064_001"))
-
-Hays_housing_2016 <- get_acs(geography = "tract", state = "TX", county = "Hays", 
-                     year = 2016, survey = "acs5", geometry = TRUE,
-                     variables = c(mhv = "B25077_001",
-                                   mgr = "B25064_001"))
-
+housing_2016 <- data.frame()
+for (x in large_austin_area) {
+  dummy_county <- get_acs(geography = "tract", state = "TX", county = x,
+                          year = 2016, survey = "acs5", geometry = TRUE,
+                          variables = c(mhv = "B25077_001", #Median housing value
+                                   mgr = "B25064_001") #Median gross rent (B25058 for contract rent)
+                          )
+  housing_2016 <- rbind(housing_2016, dummy_county)
+}
 ```
 
+
 ```{r}
-Travis_housing_2000 <- get_decennial(geography = "tract", state = "TX", county = "Travis",
+housing_2000 <- data.frame()
+for (x in large_austin_area) {
+  dc_3 <- get_decennial(geography = "tract", state = "TX", county = x,
                      year = 2000, geometry = TRUE, sumfile = "sf3",
                      # show_call = TRUE,
                      variables = c(mhv = "H076001", #Median Value for owner-occupied
-                                   mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
-
-Williamson_housing_2000 <- get_decennial(geography = "tract", state = "TX", county = "Williamson",
-                     year = 2000, geometry = TRUE, sumfile = "sf3",
-                     # show_call = TRUE,
-                     variables = c(mhv = "H076001", #Median Value for owner-occupied
-                                   mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
-
-Bastrop_housing_2000 <- get_decennial(geography = "tract", state = "TX", county = "Bastrop",
-                     year = 2000, geometry = TRUE, sumfile = "sf3",
-                     # show_call = TRUE,
-                     variables = c(mhv = "H076001", #Median Value for owner-occupied
-                                   mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
-
-Caldwell_housing_2000 <- get_decennial(geography = "tract", state = "TX", county = "Caldwell",
-                     year = 2000, geometry = TRUE, sumfile = "sf3",
-                     # show_call = TRUE,
-                     variables = c(mhv = "H076001", #Median Value for owner-occupied
-                                   mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
-
-Hays_housing_2000 <- get_decennial(geography = "tract", state = "TX", county = "Hays",
-                     year = 2000, geometry = TRUE, sumfile = "sf3",
-                     # show_call = TRUE,
-                     variables = c(mhv = "H076001", #Median Value for owner-occupied
-                                   mgr = "H063001")) #Median Gross rent (H056 for median contract rent)
+                                   mgr = "H063001") #Median Gross rent (H056 for median contract rent)
+                     )
+  
+  housing_2000 <- rbind(housing_2000, dc_3)
+  }
 ```
 
+
 ```{r}
-Austin_housing_2016a <- rbind(Travis_housing_2016, Williamson_housing_2016, Bastrop_housing_2016, Caldwell_housing_2016, Hays_housing_2016)
-Austin_housing_2016 <- as.data.frame(Austin_housing_2016a)[,c(1, 3:4)] %>% spread(variable, estimate)
+Austin_housing_2016 <- as.data.frame(housing_2016)[,c(1, 3:4)] %>% spread(variable, estimate)
 Austin_housing_2016[is.na(Austin_housing_2016)] <- 0
-```
-
-```{r}
-Austin_housing_2000a <- rbind(Travis_housing_2000, Williamson_housing_2000, Bastrop_housing_2000, Caldwell_housing_2000, Hays_housing_2000)
-Austin_housing_2000 <- as.data.frame(Austin_housing_2000a)[,c(1, 4:5)] %>% spread(variable, value)
+Austin_housing_2000 <- as.data.frame(housing_2000)[,c(1, 4:5)] %>% spread(variable, value)
 Austin_housing_2000[is.na(Austin_housing_2000)] <- 0
 colnames(Austin_housing_2000)[colnames(Austin_housing_2000) == 'GEOID'] <- 'trtid00'
 ```
@@ -547,8 +391,25 @@ au_tracts_within %>%
 ```
 
 ```{r}
-neighborhood_type <- Austin_vul %<%
-  left_join(Austin_demochange$dcf, by = "GEOID") %>%
-  select(c("GEOID", ))
+neighborhood_type <- Austin_vul %>%
+  select(GEOID, ifVul) %>%
+  left_join(select(Austin_demochange, GEOID, dcf, nw_ba), by = "GEOID") %>%
+  left_join(select(housing_market_change, GEOID, adjacent), by = "GEOID")
 ```
+```{r}
+neighborhood_type <- neighborhood_type %>%
+  mutate(nh_type = case_when(ifVul > 2 & dcf == FALSE & (adjacent == "Adjacent" | adjacent == "Adjacent (Rent)") ~ 'Suspectible',
+                             ifVul > 2 & dcf == FALSE & (adjacent == "Accelerating" | adjacent == "Adjacent (Rent)") ~ 'Early: Type1',
+                             ifVul > 2 & dcf == TRUE & (adjacent == "Adjacent" | adjacent == "Adjacent (Rent)") ~ 'Early: Type2',
+                             ifVul > 2 & dcf == TRUE & (adjacent == "Accelerating" | adjacent == "Adjacent (Rent)") ~ 'Dynamic',
+                             ifVul > 2 & dcf == TRUE & adjacent == "Appreciated" ~ 'Dynamic',
+                             ifVul <= 2 & nw_ba == TRUE & adjacent == "Appreciated" ~ 'Continued Loss'))
+```
+```{r}
+au_tracts_within %>%
+  left_join(neighborhood_type, by = "GEOID") %>%
+  ggplot() +
+  geom_sf(aes(fill = nh_type))
+```
+
 
